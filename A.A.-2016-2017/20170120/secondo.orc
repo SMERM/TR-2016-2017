@@ -9,7 +9,7 @@ ksmps=100
 
          instr   1
 kinv     expon   10000,p3,0.001		 
-aout     oscil   kinv,p4,1		 
+aout     oscil   kinv,1000,1		 
 		 out     aout
 		 endin   
 		
