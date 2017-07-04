@@ -1,22 +1,4 @@
-class Nota
-  attr_reader :at,:lgt,:vol,:ptch,:tmbr
-  def initialize(at,lgt,vol,ptch,tmbr)
-	  @at = at
-	  @lgt = lgt
-    @vol = vol
-	  @ptch = ptch
-    @tmbr = tmbr
-  end
-
-  def et
-    self.at + self.lgt
-  end
-
-  def to_csound
-    "i%02d %8.4f %8.4f %+5.2f %8.4f" % [self.tmbr,self.at,self.lgt,self.vol,self.ptch]
-  end
-
-end
+require "nota"
 
 class Melodia < Array   #La classe Melodia è sottoclasse della classe Array ora andiamo a definire i vari tipi di melodie
 
@@ -42,6 +24,7 @@ class Melodia < Array   #La classe Melodia è sottoclasse della classe Array ora
   def load (filename)
     t = 1   #tempo metronomico: se non gli dico altro il tempo è di 60
     at = 0.0
+    tmbr = 1
     File.open(filename,"r") do #File è una classe che ha come metodo open, r è per lettura
       |fh|
       while (!fh.eof?)
@@ -50,7 +33,8 @@ class Melodia < Array   #La classe Melodia è sottoclasse della classe Array ora
         case type
         when /^\s*tempo/ then t = 60.0/(args).to_f #se a inizio riga trovi spazi e la scritta "tempo"
         when /^\s*p/ then at = advance(t,at,args)
-        when /^\s*n/ then at = add_note(t,at,args)
+        when /^\s*n/ then at = add_note(t,at,tmbr,args)
+        when /^\s*voce/ then (at,tmbr)=[0.0,args.to_i]
         end
       end
 
@@ -75,18 +59,22 @@ class Melodia < Array   #La classe Melodia è sottoclasse della classe Array ora
     dins = {"ff"=>-6, "f"=>-12, "mf"=>-18, "mp"=>-24, "p"=>-30, "pp"=>-36}
     dins[din]
   end
-
+  def add_agogica(dur,ago)
+    agos = {"ten"=>1,"leg"=>1.2,"stac"=>0.5}
+    dur*agos[ago]
+  end
   def advance(t,at,value)
     dur = convert_to_dur(t,value)
     at + dur
   end
 
-  def add_note(t,at,args)
-    (nota,oct,ritm,dina,agogica,strm) = args.split(/\s+/)
+  def add_note(t,at,strm,args)
+    (nota,oct,ritm,dina,agogica) = args.split(/\s+/)
     f = convert_to_note(nota,oct)
     dur = convert_to_dur(t,ritm)
+    dur = add_agogica(dur,agogica)
     din = convert_to_din(dina)
-    self << Nota.new(at,dur,din,f,strm.to_i)
+    self << Nota.new(at,dur,din,f,strm)
     at + dur
   end
   def variate()

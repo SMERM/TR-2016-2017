@@ -13,6 +13,5 @@ class MelodiaFasce < Melodia #camel casing
       end
     end
     self.concat temp
-    self.sort {|a,b| a.at <=> b.at} #sorting delle note sul campo dell'at
   end
 end
